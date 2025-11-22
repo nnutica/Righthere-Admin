@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
+import DiaryCard from "./DiaryCard";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "@/libs/firebase";
 
@@ -35,21 +36,20 @@ function normalizeMood(m?: string): string {
   return m.trim().toLowerCase();
 }
 
-const moodColors: Record<string, string> = {
-  sadness: "#93C5FD",
-  anger: "#FCA5A5",
-  love: "#F9A8D4",
-  fear: "#D8B4FE",
-  disgust: "#86EFAC",
-  surprise: "#F9E88C",
-  joy: "#E9922B",
-  happiness: "#E9922B",
-};
-
 export default function DiaryList() {
   const [diaries, setDiaries] = useState<DiaryDoc[]>([]);
   const [loading, setLoading] = useState(true);
   const [moodFilter, setMoodFilter] = useState<string>("all");
+  const scrollerRef = useRef<HTMLDivElement | null>(null);
+
+  const CARD_WIDTH = 384; // px (Tailwind w-96)
+  const CARD_GAP = 16; // px
+  const scrollByCards = (n: number) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const delta = n * (CARD_WIDTH + CARD_GAP);
+    el.scrollBy({ left: delta, behavior: "smooth" });
+  };
 
   useEffect(() => {
     const col = collection(db, "diaries");
@@ -111,110 +111,36 @@ export default function DiaryList() {
         <div className="text-sm text-zinc-500">No diaries found.</div>
       )}
 
-      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {filtered.map((d) => (
-          <DiaryCard key={d.id} diary={d} />
-        ))}
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => scrollByCards(-1)}
+          className="absolute left-0 top-1/2 z-10 -translate-y-1/2 rounded-full border border-zinc-300 bg-white/90 px-2 py-1 text-sm shadow hover:bg-white"
+          aria-label="Previous"
+        >
+          ‹
+        </button>
+        <div
+          ref={scrollerRef}
+          className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory px-8 pb-2"
+        >
+          {filtered.map((d) => (
+            <div key={d.id} className="snap-start w-96 shrink-0">
+              <DiaryCard diary={d} />
+            </div>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={() => scrollByCards(1)}
+          className="absolute right-0 top-1/2 z-10 -translate-y-1/2 rounded-full border border-zinc-300 bg-white/90 px-2 py-1 text-sm shadow hover:bg-white"
+          aria-label="Next"
+        >
+          ›
+        </button>
       </div>
     </div>
   );
 }
 
-interface DiaryCardProps {
-  diary: DiaryDoc;
-}
-
-function DiaryCard({ diary }: DiaryCardProps) {
-  const {
-    content,
-    keywords,
-    suggestion,
-    emotionalReflection,
-    createdDate,
-    imageUrl,
-    imageUrls,
-    mood,
-  } = diary;
-
-  const nmood = normalizeMood(mood);
-  const bgColor = moodColors[nmood] || "#FFFFFF";
-  const displayDate = createdDate
-    ? createdDate.toLocaleDateString(undefined, {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    : "Unknown date";
-
-  const images: string[] = [];
-  if (imageUrl) images.push(imageUrl);
-  if (Array.isArray(imageUrls)) {
-    imageUrls.forEach((u) => {
-      if (u && !images.includes(u)) images.push(u);
-    });
-  }
-
-  return (
-    <div
-      className="rounded-lg border border-zinc-200 p-4 shadow-sm"
-      style={{ backgroundColor: bgColor }}
-    >
-      <div className="flex items-start justify-between gap-2">
-        <span className="text-xs font-medium text-zinc-700">{displayDate}</span>
-        {images.length > 0 && (
-          <span className="text-[10px] rounded bg-yellow-100 px-2 py-1 text-yellow-700">
-            {images.length} image{images.length > 1 ? "s" : ""}
-          </span>
-        )}
-      </div>
-      {nmood && (
-        <div className="mt-2 text-[11px] font-semibold uppercase tracking-wide text-zinc-700">
-          Mood: {nmood}
-        </div>
-      )}
-      {images.length > 0 && (
-        <div className="mt-3 flex gap-2 overflow-x-auto">
-          {images.map((src) => (
-            <img
-              key={src}
-              src={src}
-              alt="diary"
-              className="h-24 w-24 shrink-0 rounded object-cover border border-zinc-200"
-            />
-          ))}
-        </div>
-      )}
-      {content && (
-        <p className="mt-3 text-sm leading-relaxed text-zinc-800 line-clamp-4">
-          {content}
-        </p>
-      )}
-      {keywords && (
-        <div className="mt-3 flex flex-wrap gap-2">
-          {keywords.split(",").map((k) => (
-            <span
-              key={k.trim()}
-              className="rounded-md bg-zinc-100 px-2 py-1 text-[11px] font-medium text-zinc-600"
-            >
-              {k.trim()}
-            </span>
-          ))}
-        </div>
-      )}
-      {emotionalReflection && (
-        <div className="mt-4 rounded-md bg-zinc-50 p-3 text-xs text-zinc-600">
-          <strong className="block mb-1 text-zinc-700">Reflection</strong>
-          {emotionalReflection}
-        </div>
-      )}
-      {suggestion && (
-        <div className="mt-3 rounded-md bg-yellow-50 p-3 text-xs text-yellow-800">
-          <strong className="block mb-1">Suggestion</strong>
-          {suggestion}
-        </div>
-      )}
-    </div>
-  );
-}
+// DiaryCard extracted to its own component
