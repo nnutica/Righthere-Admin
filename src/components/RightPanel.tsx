@@ -8,7 +8,7 @@ export default function RightPanel() {
   return (
     <div className="flex h-full flex-col gap-6">
       <div className="card-base p-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-semibold">Calendar</h3>
           <div className="flex gap-2 text-xs">
             {['week','month','year'].map(m => (
@@ -16,16 +16,16 @@ export default function RightPanel() {
             ))}
           </div>
         </div>
-        <div className="mt-3 h-40 w-full rounded-md bg-(--color-bg-accent) flex items-center justify-center text-xs text-(--color-text-secondary)">
-          (Calendar placeholder)
+        <div className="mt-3 h-28 w-full rounded-md bg-(--color-bg-accent) flex items-center justify-center text-xs text-(--color-text-secondary)">
+          (placeholder)
         </div>
       </div>
       <div className="card-base p-4">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-semibold">Storage</h3>
+          <h3 className="text-sm font-semibold">Storage / Stats</h3>
           <span className="text-xs text-(--color-text-secondary)">Month</span>
         </div>
-        <div className="h-48 w-full">
+        <div className="h-40 w-full">
           <Dashboard />
         </div>
       </div>

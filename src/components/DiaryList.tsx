@@ -40,16 +40,6 @@ export default function DiaryList() {
   const [diaries, setDiaries] = useState<DiaryDoc[]>([]);
   const [loading, setLoading] = useState(true);
   const [moodFilter, setMoodFilter] = useState<string>("all");
-  const scrollerRef = useRef<HTMLDivElement | null>(null);
-
-  const CARD_WIDTH = 384; // px (Tailwind w-96)
-  const CARD_GAP = 16; // px
-  const scrollByCards = (n: number) => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const delta = n * (CARD_WIDTH + CARD_GAP);
-    el.scrollBy({ left: delta, behavior: "smooth" });
-  };
 
   useEffect(() => {
     const col = collection(db, "diaries");
@@ -80,8 +70,19 @@ export default function DiaryList() {
     return diaries.filter((d) => normalizeMood(d.mood) === moodFilter);
   }, [diaries, moodFilter]);
 
+  // Horizontal carousel restored per latest request.
+  const scrollerRef = useRef<HTMLDivElement | null>(null);
+  const CARD_WIDTH = 384; // Tailwind w-96
+  const CARD_GAP = 16; // gap-4
+  const scrollByCards = (n: number) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const delta = n * (CARD_WIDTH + CARD_GAP);
+    el.scrollBy({ left: delta, behavior: "smooth" });
+  };
+
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 w-full h-full min-h-0">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-lg font-semibold text-zinc-900">Diaries</h1>
         <div className="flex items-center gap-2">
@@ -111,21 +112,21 @@ export default function DiaryList() {
         <div className="text-sm text-zinc-500">No diaries found.</div>
       )}
 
-      <div className="relative">
+      <div className="relative flex-1 min-h-0">
         <button
           type="button"
           onClick={() => scrollByCards(-1)}
-          className="absolute left-0 top-1/2 z-10 -translate-y-1/2 rounded-full border border-zinc-300 bg-white/90 px-2 py-1 text-sm shadow hover:bg-white"
+          className="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full border border-zinc-300 bg-white/90 px-3 py-2 text-sm shadow hover:bg-white"
           aria-label="Previous"
         >
           ‹
         </button>
         <div
           ref={scrollerRef}
-          className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory px-8 pb-2"
+          className="flex gap-4 overflow-x-auto scroll-smooth px-12 pb-2 h-full items-stretch"
         >
           {filtered.map((d) => (
-            <div key={d.id} className="snap-start w-96 shrink-0">
+            <div key={d.id} className="w-96 shrink-0 h-full">
               <DiaryCard diary={d} />
             </div>
           ))}
@@ -133,7 +134,7 @@ export default function DiaryList() {
         <button
           type="button"
           onClick={() => scrollByCards(1)}
-          className="absolute right-0 top-1/2 z-10 -translate-y-1/2 rounded-full border border-zinc-300 bg-white/90 px-2 py-1 text-sm shadow hover:bg-white"
+          className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full border border-zinc-300 bg-white/90 px-3 py-2 text-sm shadow hover:bg-white"
           aria-label="Next"
         >
           ›

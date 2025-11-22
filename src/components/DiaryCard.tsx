@@ -18,6 +18,15 @@ const moodColors: Record<string, string> = {
   happiness: "#E9922B",
 };
 
+function withAlpha(hex: string, alpha: number) {
+  const clean = hex.replace('#', '');
+  const bigint = parseInt(clean, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 export type DiaryCardData = {
   content?: string;
   keywords?: string;
@@ -61,53 +70,77 @@ export default function DiaryCard({ diary }: { diary: DiaryCardData }) {
     });
   }
 
+  const tintBg = withAlpha(bgColor, 0.08);
+  const badgeBg = withAlpha(bgColor, 0.25);
+
+  const mainImage = images[0];
+  const otherImages = images.slice(1);
+
   return (
-    <div className="rounded-lg bg-white p-4 shadow">
+    <div className="rounded-lg p-4 shadow flex flex-col h-full border border-zinc-200 overflow-hidden" style={{ backgroundColor: tintBg }}>
       <div className="h-1 w-full rounded" style={{ backgroundColor: bgColor }} />
-      <div className="flex items-start justify-between gap-2">
+      <div className="mt-2 flex items-start justify-between gap-2">
         <span className="text-xs font-medium text-zinc-700">{displayDate}</span>
-        {images.length > 0 && (
-          <span className="text-[10px] rounded bg-yellow-100 px-2 py-1 text-yellow-700">
-            {images.length} image{images.length > 1 ? "s" : ""}
+        {nmood && (
+          <span
+            className="text-[10px] px-2 py-1 rounded-full font-medium"
+            style={{ backgroundColor: badgeBg }}
+          >
+            {nmood}
           </span>
         )}
       </div>
-      {nmood && (
-        <div className="mt-2 text-[11px] font-semibold uppercase tracking-wide text-zinc-700">
-          Mood: {nmood}
-        </div>
-      )}
-      {images.length > 0 && (
-        <div className="mt-3 flex gap-2 overflow-x-auto">
-          {images.map((src) => (
-            <img
-              key={src}
-              src={src}
-              alt="diary"
-              className="h-24 w-24 shrink-0 rounded object-cover border border-zinc-200"
-            />
-          ))}
+      {(mainImage || keywords) && (
+        <div className="mt-3 flex gap-3 items-start mb-0">
+          {mainImage && (
+            <div className="flex flex-col gap-2">
+              <img
+                src={mainImage}
+                alt="diary main"
+                loading="lazy"
+                className="w-40 h-28 rounded-md object-cover border border-zinc-200"
+              />
+              {otherImages.length > 0 && (
+                <div className="flex gap-2 overflow-x-auto py-1 scrollbar-thin">
+                  {otherImages.map((src) => (
+                    <img
+                      key={src}
+                      src={src}
+                      alt="thumb"
+                      loading="lazy"
+                      className="h-12 w-12 shrink-0 rounded object-cover border border-zinc-200"
+                    />
+                  ))}
+                </div>
+              )}
+              {images.length > 0 && (
+                <div className="text-[10px] text-zinc-600">
+                  {images.length} image{images.length > 1 ? 's' : ''}
+                </div>
+              )}
+            </div>
+          )}
+          {keywords && (
+            <div className="flex flex-wrap gap-2 flex-1 max-h-28 overflow-y-auto pr-1">
+              {keywords.split(",").map((k) => (
+                <span
+                  key={k.trim()}
+                  className="rounded-md bg-white/60 backdrop-blur px-2 py-1 text-[11px] font-medium text-zinc-700 border border-zinc-200"
+                >
+                  {k.trim()}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       )}
       {content && (
-        <p className="mt-3 text-sm leading-relaxed text-zinc-800 line-clamp-4">
-          {content}
+        <p className="mt-2 text-sm leading-relaxed text-zinc-800 flex-1 overflow-hidden">
+          {content.length > 360 ? content.slice(0, 360) + "…" : content}
         </p>
       )}
-      {keywords && (
-        <div className="mt-3 flex flex-wrap gap-2">
-          {keywords.split(",").map((k) => (
-            <span
-              key={k.trim()}
-              className="rounded-md bg-zinc-100 px-2 py-1 text-[11px] font-medium text-zinc-600"
-            >
-              {k.trim()}
-            </span>
-          ))}
-        </div>
-      )}
       {emotionalReflection && (
-        <div className="mt-4 rounded-md bg-zinc-50 p-3 text-xs text-zinc-600">
+        <div className="mt-4 rounded-md bg-white/70 p-3 text-xs text-zinc-600">
           <strong className="block mb-1 text-zinc-700">Reflection</strong>
           {emotionalReflection}
         </div>

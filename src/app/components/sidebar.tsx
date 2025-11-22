@@ -80,6 +80,14 @@ export default function Sidebar() {
           >
             Diaries
           </Link>
+          <Link
+            href="/diarytest"
+            className={`rounded-md px-3 py-2 text-sm font-medium transition ${
+              pathname === "/diarytest" ? "bg-zinc-100 text-zinc-900" : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900"
+            }`}
+          >
+            Diarytest
+          </Link>
         </nav>
       </div>
       <button
